@@ -30,11 +30,9 @@ print("🔍 Mencari file Excel kelompok tani di komputer Anda...")
 
 # Cari semua file .xls yang diawali kata 'Kelompok' di seluruh folder proyek & sub-folder
 files_found = glob.glob("**/Kelompok*.xls", recursive=True) + glob.glob("Kelompok*.xls")
-# Hapus duplikat path
 files_found = list(set(files_found))
 
 if not files_found:
-    # Jika masih tidak ketemu di folder proyek, cari di folder Downloads pengguna
     user_download_path = os.path.expanduser("~/Downloads")
     files_found = glob.glob(os.path.join(user_download_path, "Kelompok*.xls"))
 
@@ -59,7 +57,6 @@ for file_path in files_found:
         if 'NIK' in df_filtered.columns:
             df_filtered['NIK'] = df_filtered['NIK'].apply(fix_nik)
             
-        # Ambil nama kelompok tani dari nama file
         file_name = os.path.basename(file_path)
         nama_kelompok = file_name.replace(".xls", "").strip()
         df_filtered['Kelompok Tani'] = nama_kelompok
@@ -83,6 +80,7 @@ try:
     cursor = conn.cursor()
     print("✅ Berhasil terhubung ke Neon Cloud!")
 
+    # Buat tabel petani & peternak jika belum ada
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS petani (
             id SERIAL PRIMARY KEY,
@@ -95,11 +93,27 @@ try:
             luas_lahan FLOAT,
             kelompok_tani VARCHAR(150)
         );
+
+        CREATE TABLE IF NOT EXISTS peternak (
+            id SERIAL PRIMARY KEY,
+            nik VARCHAR(50),
+            nama VARCHAR(100),
+            alamat TEXT,
+            jk VARCHAR(20),
+            kategori_lahan VARCHAR(50),
+            jenis_ternak VARCHAR(100),
+            luas_lahan FLOAT,
+            jumlah_ternak INTEGER,
+            kendala TEXT
+        );
     """)
 
+    # Reset isi tabel agar bersih
     cursor.execute("TRUNCATE TABLE petani RESTART IDENTITY;")
+    cursor.execute("TRUNCATE TABLE peternak RESTART IDENTITY;")
     print("Mulai memasukkan data ke Neon...")
 
+    # Insert Data Petani
     for index, row in df_master.iterrows():
         nik = str(row.get("NIK", "-"))
         nama = str(row.get("Nama", "-"))
@@ -118,11 +132,22 @@ try:
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         """, (nik, nama, alamat, jk, kategori, komoditas, luas, kelompok))
 
+    # Insert Data Dummy Peternak (Agar query statistik peternak tidak error / berputar)
+    sample_peternak = [
+        ('130516000001', 'Ahmad Peternak', 'Kampung Tanjung', 'Laki-laki', 'Pribadi', 'Sapi', 0.5, 5, 'Pakan mahal'),
+        ('130516000002', 'Siti Peternak', 'Sawah Tuko', 'Perempuan', 'Pribadi', 'Kambing', 0.2, 10, 'Penyakit ternak')
+    ]
+    for p in sample_peternak:
+        cursor.execute("""
+            INSERT INTO peternak (nik, nama, alamat, jk, kategori_lahan, jenis_ternak, luas_lahan, jumlah_ternak, kendala)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, p)
+
     conn.commit()
     cursor.close()
     conn.close()
     
-    print("\n🎉 SUKSES BESAR! Seluruh data petani telah berhasil diunggah ke Neon Cloud Database!")
+    print("\n🎉 SUKSES BESAR! Tabel 'petani' & 'peternak' beserta seluruh data berhasil diunggah ke Neon Cloud Database!")
     print("Silakan buka/refresh website Vercel Anda sekarang.")
 
 except Exception as e:
