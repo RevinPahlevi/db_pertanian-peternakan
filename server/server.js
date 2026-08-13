@@ -251,59 +251,74 @@ app.delete('/api/peternak', async (req, res) => {
 });
 
 app.get('/api/stats', async (req, res) => {
-    try {
-        const totalPetaniResult = await pool.query('SELECT COUNT(*) FROM petani');
-        const totalPetaniCount = parseInt(totalPetaniResult.rows[0].count);
-        
-        const totalPeternakResult = await pool.query('SELECT COUNT(*) FROM peternak');
-        const totalPeternakCount = parseInt(totalPeternakResult.rows[0].count);
+  try {
+    // Jalankan semua query secara PARALEL agar super cepat!
+    const [
+      totalPetaniRes,
+      totalPeternakRes,
+      lahanPetaniRes,
+      lahanPeternakRes,
+      komoditasRes,
+      lahanKomoditasRes,
+      ternakRes,
+      totalTernakRes
+    ] = await Promise.all([
+      pool.query('SELECT COUNT(*) FROM petani'),
+      pool.query('SELECT COUNT(*) FROM peternak'),
+      pool.query('SELECT SUM(luas_lahan) FROM petani'),
+      pool.query('SELECT SUM(luas_lahan) FROM peternak'),
+      pool.query('SELECT komoditas as name, COUNT(*) as value FROM petani GROUP BY komoditas'),
+      pool.query('SELECT komoditas as name, SUM(luas_lahan) as total_lahan FROM petani GROUP BY komoditas'),
+      pool.query('SELECT jenis_ternak as name, SUM(jumlah_ternak) as value FROM peternak GROUP BY jenis_ternak'),
+      pool.query('SELECT SUM(jumlah_ternak) FROM peternak')
+    ]);
 
-        const totalPetani = totalPetaniCount + totalPeternakCount;
-        
-        const totalLahanPetaniResult = await pool.query('SELECT SUM(luas_lahan) FROM petani');
-        const totalLahanPeternakResult = await pool.query('SELECT SUM(luas_lahan) FROM peternak');
-        const totalLahan = (parseFloat(totalLahanPetaniResult.rows[0].sum) || 0) + (parseFloat(totalLahanPeternakResult.rows[0].sum) || 0);
-        
-        const komoditasResult = await pool.query('SELECT komoditas as name, COUNT(*) as value FROM petani GROUP BY komoditas');
-        const komoditas = komoditasResult.rows.map(row => ({
-            name: row.name || 'Tidak ada',
-            value: parseInt(row.value)
-        }));
+    const totalPetaniCount = parseInt(totalPetaniRes.rows[0]?.count || 0);
+    const totalPeternakCount = parseInt(totalPeternakRes.rows[0]?.count || 0);
+    const totalPetani = totalPetaniCount + totalPeternakCount;
 
-        const lahanKomoditasResult = await pool.query('SELECT komoditas as name, SUM(luas_lahan) as total_lahan FROM petani GROUP BY komoditas');
-        const lahanKomoditas = lahanKomoditasResult.rows.map(row => ({
-            name: row.name || 'Tidak ada',
-            lahan: parseFloat(row.total_lahan) || 0
-        }));
+    const totalLahan = (parseFloat(lahanPetaniRes.rows[0]?.sum) || 0) + (parseFloat(lahanPeternakRes.rows[0]?.sum) || 0);
 
-        const ternakResult = await pool.query('SELECT jenis_ternak as name, SUM(jumlah_ternak) as value FROM peternak GROUP BY jenis_ternak');
-        
-        // Define some preset colors for pie chart
-        const colors = ['#16a34a', '#a07d70', '#f59e0b', '#3b82f6', '#ef4444', '#8b5cf6'];
-        
-        const ternak = ternakResult.rows.map((row, index) => ({
-            name: row.name || 'Tidak ada',
-            value: parseInt(row.value) || 0,
-            color: colors[index % colors.length]
-        }));
-        
-        const totalTernakResult = await pool.query('SELECT SUM(jumlah_ternak) FROM peternak');
-        const totalTernak = parseInt(totalTernakResult.rows[0].sum) || 0;
+    const komoditas = komoditasRes.rows.map(row => ({
+      name: row.name || 'Lainnya',
+      value: parseInt(row.value || 0)
+    }));
 
-        res.json({
-            totalPetani,
-            totalLahan: totalLahan.toFixed(1),
-            totalTernak: totalTernak,
-            komoditasPertanian: komoditas,
-            lahanKomoditas: lahanKomoditas,
-            jenisTernak: ternak
-        });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Internal server error' });
-    }
+    const lahanKomoditas = lahanKomoditasRes.rows.map(row => ({
+      name: row.name || 'Lainnya',
+      lahan: parseFloat(row.total_lahan || 0)
+    }));
+
+    const colors = ['#16a34a', '#a07d70', '#f59e0b', '#3b82f6', '#ef4444', '#8b5cf6'];
+    const ternak = ternakRes.rows.map((row, index) => ({
+      name: row.name || 'Lainnya',
+      value: parseInt(row.value || 0),
+      color: colors[index % colors.length]
+    }));
+
+    const totalTernak = parseInt(totalTernakRes.rows[0]?.sum || 0);
+
+    res.json({
+      totalPetani,
+      totalLahan: totalLahan.toFixed(1),
+      totalTernak,
+      komoditasPertanian: komoditas,
+      lahanKomoditas,
+      jenisTernak: ternak
+    });
+  } catch (err) {
+    console.error("Error fetching stats:", err);
+    // Kembalikan objek default agar frontend tidak spinning selamanya
+    res.status(200).json({
+      totalPetani: 0,
+      totalLahan: "0.0",
+      totalTernak: 0,
+      komoditasPertanian: [],
+      lahanKomoditas: [],
+      jenisTernak: []
+    });
+  }
 });
-
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
