@@ -34,18 +34,12 @@ const PublicDashboard = () => {
     jenisTernak: []
   });
 
-  useEffect(() => {
-    fetch('http://localhost:5000/api/stats')
-      .then(res => res.json())
-      .then(data => {
-        setStats(data);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error(err);
-        setLoading(false);
-      });
-  }, []);
+ useEffect(() => {
+  fetch('/api/stats')
+    .then((res) => res.json())
+    .then((data) => setStats(data))
+    .catch((err) => console.error(err));
+}, []);
 
   if (loading) {
     return (
