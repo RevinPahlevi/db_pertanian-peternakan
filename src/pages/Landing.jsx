@@ -1,12 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Sprout, BarChart3, Users, ShieldCheck } from 'lucide-react';
+import bgImage from '../assets/background.jpg';
 
 const Landing = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col">
       {/* Navbar */}
-      <nav className="border-b border-gray-100 bg-white/80 backdrop-blur-md fixed w-full z-10 top-0">
+      <nav className="border-b border-gray-100 bg-white/95 backdrop-blur-md fixed w-full z-50 top-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Sprout className="h-8 w-8 text-green-600" />
@@ -24,8 +25,18 @@ const Landing = () => {
       </nav>
 
       {/* Hero Section */}
-      <main className="flex-grow flex items-center pt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-24">
+      <main
+        className="relative flex-grow pt-16"
+        style={{
+          backgroundImage: `url(${bgImage})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundAttachment: 'fixed',
+          minHeight: '100vh'
+        }}
+      >
+        <div className="absolute inset-0 bg-white/55 backdrop-blur-[2px] pointer-events-none" style={{zIndex: 0}} />
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full" style={{ paddingTop: '96px', paddingBottom: '96px' }}>
           <div className="text-center max-w-3xl mx-auto">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-50 text-green-700 text-sm font-medium mb-8">
               <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>

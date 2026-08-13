@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Search, Edit2, Trash2, X } from 'lucide-react';
-import { mockPeternak } from '../../data/mockData';
 
 const DataPeternak = () => {
-  const [data, setData] = useState(mockPeternak);
+  const [data, setData] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   
   // Form State
   const [formData, setFormData] = useState({ 
@@ -17,8 +17,26 @@ const DataPeternak = () => {
     kategoriLahan: 'Pribadi', 
     jenisTernak: '', 
     luasLahan: '', 
+    jumlahTernak: '',
     kendala: '' 
   });
+
+  const fetchData = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('http://localhost:5000/api/peternak');
+      const result = await response.json();
+      setData(result);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   const filteredData = data.filter(item => 
     item.nama.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -38,25 +56,65 @@ const DataPeternak = () => {
         kategoriLahan: 'Pribadi', 
         jenisTernak: '', 
         luasLahan: '', 
+        jumlahTernak: '',
         kendala: '' 
       });
     }
     setIsModalOpen(true);
   };
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
-    if (formData.id) {
-      setData(data.map(item => item.id === formData.id ? formData : item));
-    } else {
-      setData([...data, { ...formData, id: Date.now() }]);
+    try {
+      const url = formData.id 
+        ? `http://localhost:5000/api/peternak/${formData.id}`
+        : 'http://localhost:5000/api/peternak';
+      
+      const method = formData.id ? 'PUT' : 'POST';
+      
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+      
+      if (response.ok) {
+        fetchData();
+        setIsModalOpen(false);
+      } else {
+        alert('Gagal menyimpan data');
+      }
+    } catch (error) {
+      console.error('Error saving:', error);
     }
-    setIsModalOpen(false);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if(window.confirm('Yakin ingin menghapus data ini?')) {
-      setData(data.filter(item => item.id !== id));
+      try {
+        const response = await fetch(`http://localhost:5000/api/peternak/${id}`, { method: 'DELETE' });
+        if (response.ok) {
+          setData(data.filter(item => item.id !== id));
+        }
+      } catch (error) {
+        console.error('Error deleting:', error);
+      }
+    }
+  };
+
+  const handleDeleteAll = async () => {
+    if(window.confirm('PERINGATAN: Apakah Anda yakin ingin menghapus SEMUA data peternak? Tindakan ini tidak dapat dibatalkan!')) {
+      try {
+        const response = await fetch('http://localhost:5000/api/peternak', { method: 'DELETE' });
+        if (response.ok) {
+          setData([]);
+          alert('Semua data berhasil dihapus.');
+        } else {
+          alert('Gagal menghapus semua data.');
+        }
+      } catch (error) {
+        console.error('Error deleting all:', error);
+      }
     }
   };
 
@@ -67,13 +125,22 @@ const DataPeternak = () => {
           <h1 className="text-2xl font-bold text-gray-900">Data Pemilik Peternakan</h1>
           <p className="text-gray-500 mt-1">Kelola data kepemilikan dan jenis ternak.</p>
         </div>
-        <button 
-          onClick={() => handleOpenModal()}
-          className="bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 transition-colors flex items-center gap-2 shadow-sm"
-        >
-          <Plus className="w-5 h-5" />
-          Tambah Data
-        </button>
+        <div className="flex gap-2">
+          <button 
+            onClick={handleDeleteAll}
+            className="bg-red-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-700 transition-colors flex items-center gap-2 shadow-sm"
+          >
+            <Trash2 className="w-5 h-5" />
+            Hapus Semua
+          </button>
+          <button 
+            onClick={() => handleOpenModal()}
+            className="bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 transition-colors flex items-center gap-2 shadow-sm"
+          >
+            <Plus className="w-5 h-5" />
+            Tambah Data
+          </button>
+        </div>
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
@@ -103,7 +170,8 @@ const DataPeternak = () => {
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">L/P</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status Lahan/Kandang</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis Ternak</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Luas Lahan (Ha)</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jumlah (Ekor)</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Luas Lahan/Kandang (Ha)</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kendala</th>
                 <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
               </tr>
@@ -122,6 +190,7 @@ const DataPeternak = () => {
                     </span>
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.jenisTernak}</td>
+                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{item.jumlahTernak || 0}</td>
                   <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{item.luasLahan}</td>
                   <td className="px-4 py-4 text-sm text-gray-500 max-w-[200px] truncate">{item.kendala}</td>
                   <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium flex justify-end gap-2">
@@ -135,7 +204,9 @@ const DataPeternak = () => {
                 </tr>
               )) : (
                 <tr>
-                  <td colSpan="10" className="px-4 py-8 text-center text-gray-500">Tidak ada data ditemukan.</td>
+                  <td colSpan={isLoading ? "11" : "11"} className="px-4 py-8 text-center text-gray-500">
+                    {isLoading ? 'Memuat data...' : 'Tidak ada data ditemukan.'}
+                  </td>
                 </tr>
               )}
             </tbody>
@@ -193,6 +264,10 @@ const DataPeternak = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Luas Lahan (Ha)</label>
                   <input type="number" step="0.01" required value={formData.luasLahan} onChange={e => setFormData({...formData, luasLahan: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 sm:text-sm" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Jumlah Ternak (Ekor)</label>
+                  <input type="number" required value={formData.jumlahTernak} onChange={e => setFormData({...formData, jumlahTernak: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 sm:text-sm" />
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Kendala</label>

@@ -11,10 +11,10 @@ const Login = () => {
 
   const handleLogin = (e) => {
     e.preventDefault();
-    if (username === 'admin' && password === 'admin') {
+    if (username === 'admin' && password === 'adminkks') {
       navigate('/admin/dashboard');
     } else {
-      setError('Username atau password salah (gunakan admin / admin)');
+      setError('Username atau password salah.');
     }
   };
 

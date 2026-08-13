@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, Sprout, Tractor, LogOut, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Users, Tractor, LogOut, Menu, X, Sprout } from 'lucide-react';
 
 const AdminLayout = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -9,103 +9,135 @@ const AdminLayout = () => {
 
   const navItems = [
     { name: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
-    { name: 'Data Petani', path: '/admin/petani', icon: Users },
-    { name: 'Data Peternak', path: '/admin/peternak', icon: Users },
+    { name: 'Data Petani', path: '/admin/petani', icon: Sprout },
+    { name: 'Data Peternak', path: '/admin/peternak', icon: Tractor },
   ];
 
   const handleLogout = () => {
-    // Basic logout logic for now
     navigate('/login');
   };
 
+  const SidebarContent = () => (
+    <>
+      {/* Logo area */}
+      <div className="flex items-center gap-3 px-6 py-5 border-b border-green-800/30">
+        <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center shadow-inner">
+          <Sprout className="w-5 h-5 text-white" />
+        </div>
+        <div>
+          <h1 className="text-base font-bold text-white leading-tight">Admin Desa</h1>
+          <p className="text-xs text-green-300 font-medium">Sistem Pertanian</p>
+        </div>
+      </div>
+
+      {/* Nav items */}
+      <nav className="flex-1 px-3 py-5 space-y-1 overflow-y-auto">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = location.pathname.includes(item.path);
+          return (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={`flex items-center px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-150 ${
+                isActive
+                  ? 'bg-white/20 text-white shadow-sm'
+                  : 'text-green-200 hover:bg-white/10 hover:text-white'
+              }`}
+            >
+              <Icon className={`mr-3 h-4.5 w-4.5 flex-shrink-0 ${isActive ? 'text-white' : 'text-green-300'}`} />
+              {item.name}
+              {isActive && (
+                <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white"></div>
+              )}
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* Logout */}
+      <div className="px-3 py-4 border-t border-green-800/30">
+        <button
+          onClick={handleLogout}
+          className="flex items-center w-full px-4 py-2.5 text-sm font-medium text-green-200 rounded-xl hover:bg-white/10 hover:text-white transition-all duration-150"
+        >
+          <LogOut className="mr-3 h-4 w-4" />
+          Keluar
+        </button>
+      </div>
+    </>
+  );
+
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-slate-50">
       {/* Sidebar - Desktop */}
-      <aside className="hidden w-64 bg-white border-r border-gray-200 md:flex md:flex-col">
-        <div className="flex items-center justify-center h-16 border-b border-gray-200">
-          <h1 className="text-xl font-bold text-green-700">Admin Desa</h1>
-        </div>
-        <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = location.pathname.includes(item.path);
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-                  isActive
-                    ? 'bg-green-50 text-green-700'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                }`}
-              >
-                <Icon className={`mr-3 h-5 w-5 ${isActive ? 'text-green-600' : 'text-gray-400'}`} />
-                {item.name}
-              </Link>
-            );
-          })}
-        </nav>
-        <div className="p-4 border-t border-gray-200">
-          <button
-            onClick={handleLogout}
-            className="flex items-center w-full px-4 py-2 text-sm font-medium text-red-600 rounded-lg hover:bg-red-50 transition-colors"
-          >
-            <LogOut className="mr-3 h-5 w-5" />
-            Keluar
-          </button>
-        </div>
+      <aside className="hidden w-60 md:flex md:flex-col gradient-brand shadow-xl flex-shrink-0">
+        <SidebarContent />
       </aside>
 
-      {/* Mobile Menu */}
-      <div className={`fixed inset-0 z-40 md:hidden ${isMobileMenuOpen ? 'block' : 'hidden'}`}>
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-75" onClick={() => setIsMobileMenuOpen(false)}></div>
-        <nav className="relative flex flex-col w-full max-w-xs h-full bg-white">
-          <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200">
-            <h1 className="text-xl font-bold text-green-700">Admin Desa</h1>
-            <button onClick={() => setIsMobileMenuOpen(false)} className="text-gray-500 hover:text-gray-700">
-              <X className="w-6 h-6" />
-            </button>
-          </div>
-          <div className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
-             {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = location.pathname.includes(item.path);
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={`flex items-center px-4 py-3 text-base font-medium rounded-lg ${
-                    isActive
-                      ? 'bg-green-50 text-green-700'
-                      : 'text-gray-600 hover:bg-gray-50'
-                  }`}
-                >
-                  <Icon className={`mr-4 h-6 w-6 ${isActive ? 'text-green-600' : 'text-gray-400'}`} />
-                  {item.name}
-                </Link>
-              );
-            })}
-          </div>
-        </nav>
-      </div>
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-50 md:hidden">
+          <div
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+          <nav className="relative flex flex-col w-72 h-full gradient-brand shadow-2xl">
+            <div className="flex items-center justify-between px-6 py-5 border-b border-green-800/30">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
+                  <Sprout className="w-5 h-5 text-white" />
+                </div>
+                <h1 className="text-base font-bold text-white">Admin Desa</h1>
+              </div>
+              <button onClick={() => setIsMobileMenuOpen(false)} className="text-green-200 hover:text-white transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <nav className="flex-1 px-3 py-5 space-y-1 overflow-y-auto">
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = location.pathname.includes(item.path);
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={`flex items-center px-4 py-2.5 text-sm font-medium rounded-xl transition-all ${
+                      isActive ? 'bg-white/20 text-white' : 'text-green-200 hover:bg-white/10 hover:text-white'
+                    }`}
+                  >
+                    <Icon className={`mr-3 h-4 w-4 ${isActive ? 'text-white' : 'text-green-300'}`} />
+                    {item.name}
+                  </Link>
+                );
+              })}
+            </nav>
+          </nav>
+        </div>
+      )}
 
       {/* Main Content */}
       <div className="flex flex-col flex-1 overflow-hidden">
         {/* Mobile Header */}
-        <header className="flex items-center justify-between h-16 px-4 bg-white border-b border-gray-200 md:hidden">
+        <header className="flex items-center justify-between h-14 px-4 bg-white border-b border-gray-100 shadow-sm md:hidden">
           <button
             onClick={() => setIsMobileMenuOpen(true)}
-            className="text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-green-500"
+            className="text-gray-500 hover:text-gray-700 p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
           >
-            <Menu className="w-6 h-6" />
+            <Menu className="w-5 h-5" />
           </button>
-          <h1 className="text-xl font-bold text-green-700">Admin Desa</h1>
-          <div className="w-6"></div> {/* Placeholder for balance */}
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg gradient-brand flex items-center justify-center">
+              <Sprout className="w-4 h-4 text-white" />
+            </div>
+            <h1 className="text-base font-bold text-gray-900">Admin Desa</h1>
+          </div>
+          <div className="w-8" />
         </header>
 
         {/* Main section */}
-        <main className="flex-1 overflow-y-auto bg-gray-50 p-4 md:p-6 lg:p-8">
+        <main className="flex-1 overflow-y-auto bg-slate-50 p-4 md:p-6 lg:p-8">
           <Outlet />
         </main>
       </div>
@@ -114,3 +146,4 @@ const AdminLayout = () => {
 };
 
 export default AdminLayout;
+
