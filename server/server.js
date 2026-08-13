@@ -9,12 +9,12 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
+// KONFIGURASI DATABASE DIPERBARUI UNTUK VERCEL / NEON
 const pool = new Pool({
-  user: process.env.DB_USER || 'postgres',
-  host: process.env.DB_HOST || 'localhost',
-  database: process.env.DB_NAME || 'db_pertanian_peternakan',
-  password: process.env.DB_PASSWORD || 'ervepe140604',
-  port: process.env.DB_PORT || 5432,
+  connectionString: process.env.POSTGRES_URL,
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
 
 // Initialize database
