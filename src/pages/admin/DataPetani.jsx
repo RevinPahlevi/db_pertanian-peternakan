@@ -18,7 +18,7 @@ const DataPetani = () => {
   const fetchData = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch('http://localhost:5000/api/petani');
+      const response = await fetch('/api/petani');
       if (response.ok) {
         const result = await response.json();
         setData(result);
@@ -76,7 +76,7 @@ const DataPetani = () => {
   const handleSave = async (e) => {
     e.preventDefault();
     try {
-      const url = formData.id ? `http://localhost:5000/api/petani/${formData.id}` : 'http://localhost:5000/api/petani';
+      const url = formData.id ? `/api/petani/${formData.id}` : '/api/petani';
       const method = formData.id ? 'PUT' : 'POST';
       
       const response = await fetch(url, {
@@ -99,7 +99,7 @@ const DataPetani = () => {
   const handleDelete = async (id) => {
     if(window.confirm('Yakin ingin menghapus data ini?')) {
       try {
-        const response = await fetch(`http://localhost:5000/api/petani/${id}`, { method: 'DELETE' });
+        const response = await fetch(`/api/petani/${id}`, { method: 'DELETE' });
         if (response.ok) {
           setData(data.filter(item => item.id !== id));
         }
@@ -112,7 +112,7 @@ const DataPetani = () => {
   const handleDeleteAll = async () => {
     if(window.confirm('PERINGATAN: Apakah Anda yakin ingin menghapus SEMUA data petani? Tindakan ini tidak dapat dibatalkan!')) {
       try {
-        const response = await fetch('http://localhost:5000/api/petani', { method: 'DELETE' });
+        const response = await fetch('/api/petani', { method: 'DELETE' });
         if (response.ok) {
           setData([]);
           alert('Semua data berhasil dihapus.');
@@ -175,7 +175,7 @@ const DataPetani = () => {
         
         if (importedData.length > 0) {
             try {
-              const response = await fetch('http://localhost:5000/api/petani/import', {
+              const response = await fetch('/api/petani/import', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(importedData)

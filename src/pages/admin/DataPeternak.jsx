@@ -24,7 +24,7 @@ const DataPeternak = () => {
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/api/peternak');
+      const response = await fetch('/api/peternak');
       const result = await response.json();
       setData(result);
     } catch (error) {
@@ -67,8 +67,8 @@ const DataPeternak = () => {
     e.preventDefault();
     try {
       const url = formData.id 
-        ? `http://localhost:5000/api/peternak/${formData.id}`
-        : 'http://localhost:5000/api/peternak';
+        ? `/api/peternak/${formData.id}`
+        : '/api/peternak';
       
       const method = formData.id ? 'PUT' : 'POST';
       
@@ -92,7 +92,7 @@ const DataPeternak = () => {
   const handleDelete = async (id) => {
     if(window.confirm('Yakin ingin menghapus data ini?')) {
       try {
-        const response = await fetch(`http://localhost:5000/api/peternak/${id}`, { method: 'DELETE' });
+        const response = await fetch(`/api/peternak/${id}`, { method: 'DELETE' });
         if (response.ok) {
           setData(data.filter(item => item.id !== id));
         }
@@ -105,7 +105,7 @@ const DataPeternak = () => {
   const handleDeleteAll = async () => {
     if(window.confirm('PERINGATAN: Apakah Anda yakin ingin menghapus SEMUA data peternak? Tindakan ini tidak dapat dibatalkan!')) {
       try {
-        const response = await fetch('http://localhost:5000/api/peternak', { method: 'DELETE' });
+        const response = await fetch('/api/peternak', { method: 'DELETE' });
         if (response.ok) {
           setData([]);
           alert('Semua data berhasil dihapus.');

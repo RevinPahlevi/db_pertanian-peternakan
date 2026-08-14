@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment variables (JANGAN commit ke git!)
+.env
+.env.local
+.env.production

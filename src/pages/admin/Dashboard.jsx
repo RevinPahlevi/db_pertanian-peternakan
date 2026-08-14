@@ -52,7 +52,7 @@ const AdminDashboard = () => {
   });
   
   useEffect(() => {
-    fetch('http://localhost:5000/api/stats')
+    fetch('/api/stats')
       .then(res => res.json())
       .then(data => {
         setStats(data);
